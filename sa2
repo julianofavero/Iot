@@ -5,6 +5,7 @@
 #include "PubSubClient.h"
 #include "Arduino_JSON.h"
 
+//declaração das bibliotecas
 DHTesp dhtSensor;
 HTTPClient http;
 WiFiClient espClient;
@@ -43,7 +44,7 @@ void setup() {
   //setup broker
   const char* Server = "broker.hivemq.com";
   int Porta = 1883;
-  const char* Client = "clientID-94ioioi&7778sdfasW23";
+  const char* Client = "clientID-48ioioi&7778sdfasW23";
   const char* Topic = "senai";
   mqttClient.setServer(Server, Porta);
   mqttClient.connect(Client);
@@ -58,7 +59,7 @@ void setup() {
 
 void loop() {
 
-  //LED azul
+  //LED azul + captura e conversão de dados
   digitalWrite(relayPin1, HIGH);
   delay(500);
   float temperatura = dhtSensor.getTemperature();
@@ -67,7 +68,7 @@ void loop() {
   Serial.println("-----------------------");
   digitalWrite(relayPin1, LOW);
 
-  //LED verde
+  //LED verde + captura e conversão de dados
   digitalWrite(relayPin2, HIGH);
   delay(500);
   float humidade = dhtSensor.getHumidity();
@@ -89,7 +90,7 @@ void loop() {
     Serial.println("Falha no envio, reconectando...");
   const char* Server = "broker.hivemq.com";
   int Porta = 1883;
-  const char* Client = "clientID-94ioioi&7778sdfasW23";
+  const char* Client = "clientID-27ioioi&7778sdfasW23";
   const char* Topic = "senai";
   mqttClient.setServer(Server, Porta);
   mqttClient.connect(Client);
