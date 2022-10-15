@@ -1,12 +1,15 @@
+// importação de bibliotecas
 #include "DHTesp.h"
 #include "WiFi.h"
 #include "HTTPClient.h"
 #include "PubSubClient.h"
+#include "Arduino_JSON.h"
 
 DHTesp dhtSensor;
 HTTPClient http;
 WiFiClient espClient;
 PubSubClient mqttClient (espClient);
+JSONVar data;
 
 //wi-fi
 const char* ssid = "Wokwi-GUEST";
@@ -23,7 +26,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("iniciando setup");
 
-  //Wi-fi
+  //setup Wi-fi
   WiFi.begin(ssid, password);
   while(WiFi.status() != WL_CONNECTED){
     delay(1000);
@@ -32,19 +35,19 @@ void setup() {
   }
   Serial.println("Wi-Fi conectado!");
 
-  //pinagem
+  //setup pinagem
   pinMode(relayPin1, OUTPUT);
   pinMode(relayPin2, OUTPUT);
   dhtSensor.setup(13, DHTesp::DHT22);
 
-  //broker
-  const char* server = "broker.hivemq.com";
-  int porta = 1883;
-  const char* cliente = "IDtesteSA3";
-  const char* topico = "testeSA3";
-  mqttClient.setServer(server, porta);
-  mqttClient.connect(cliente);
-  mqttClient.subscribe(topico);
+  //setup broker
+  const char* Server = "broker.hivemq.com";
+  int Porta = 1883;
+  const char* Client = "clientID-94ioioi&7778sdfasW23";
+  const char* Topic = "senai";
+  mqttClient.setServer(Server, Porta);
+  mqttClient.connect(Client);
+  mqttClient.subscribe(Topic);
   while(!mqttClient.connected()){
     delay(1000);
     Serial.println("conectando cliente ");
@@ -59,6 +62,7 @@ void loop() {
   digitalWrite(relayPin1, HIGH);
   delay(500);
   float temperatura = dhtSensor.getTemperature();
+  data["temperatura"] = temperatura;
   Serial.println("temperatura:" + String(temperatura) + "°C");
   Serial.println("-----------------------");
   digitalWrite(relayPin1, LOW);
@@ -67,29 +71,31 @@ void loop() {
   digitalWrite(relayPin2, HIGH);
   delay(500);
   float humidade = dhtSensor.getHumidity();
+  data["umidade"] = humidade;
   Serial.println("humidade:" + String(humidade) + "%");
   Serial.println("-----------------------");
   digitalWrite(relayPin2, LOW);
+
+  String jsonString = JSON.stringify(data);
 
   //http
   String path = url + "&field1=" + String(temperatura) + "&field2=" + String(humidade);
   http.begin(path);
   delay(500);
 
-  //broker
-  int msg = mqttClient.publish("julianofaveroSA3" ,"temperatura: humidade: ");
+  //conexão broker
+  boolean msg = mqttClient.publish("senai", jsonString.c_str());
   if(!msg){
     Serial.println("Falha no envio, reconectando...");
-    const char* server = "broker.hivemq.com";
-    int porta = 1883;
-    const char* cliente = "IDtesteSA3";
-    const char* topico = "testeSA3";
-    mqttClient.setServer(server, porta);
-    mqttClient.connect(cliente);
-    mqttClient.subscribe(topico);
-    while(!mqttClient.connected()){
-      delay(1000);
-      Serial.println("conectando cliente ");
+  const char* Server = "broker.hivemq.com";
+  int Porta = 1883;
+  const char* Client = "clientID-94ioioi&7778sdfasW23";
+  const char* Topic = "senai";
+  mqttClient.setServer(Server, Porta);
+  mqttClient.connect(Client);
+  mqttClient.subscribe(Topic);
+  while(!mqttClient.connected()){
+    delay(1000);
   }
   Serial.println("broker reconectado!");
 }
